@@ -49,7 +49,7 @@ end
 locationTxtCol = sprintf('trained/ccnf_patches_%s_%s.txt', num2str(scaling), version);
 locationMlabCol = sprintf('trained/ccnf_patches_%s_%s.mat', num2str(scaling), version);
 
-Write_patch_experts_ccnf(locationTxtCol, locationMlabCol, scaling, centres, visiIndex, patch_experts, norm_options, [7,9,11,15,21]);
+Write_patch_experts_ccnf(locationTxtCol, locationMlabCol, scaling, centres, visiIndex, patch_experts, norm_options, [7,9,11,15]);
 
 % save the images used
 location_imgs_used = sprintf('trained/imgs_used_%s.mat', version);

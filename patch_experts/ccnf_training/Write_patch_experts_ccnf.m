@@ -50,8 +50,9 @@ function Write_patch_experts_ccnf(location_txt, location_mlab, trainingScale, ce
                 
         region_length = response_side_length^2;
 
-        % Adding the sparsities here if needed
-        [ ~, PrecalcQ2s, ~, ~ ] = CalculateSimilarities( 1, {zeros(region_length,1)}, similarities, sparsities);
+        % Adding the sparsities here if needed (assuming we are using an
+        % 11x11 support area, hard-coded)
+        [ ~, PrecalcQ2s, ~, ~ ] = CalculateSimilarities( 1, zeros(122,region_length), similarities, sparsities, zeros(region_length,1), true);
 
         PrecalcQ2s = PrecalcQ2s{1};
         fprintf(patches_file, '# Number of Sigma components\r\n');
