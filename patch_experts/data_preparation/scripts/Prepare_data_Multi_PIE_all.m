@@ -3,6 +3,8 @@ function Prepare_data_Multi_PIE_all()
     % This bit collects all of the multi-pie labels into a single structure for
     % easy access
     labels_root = '../../test_data/MultiPie/';
+    
+    % The location of the Multi-PIE data folder
     multi_pie_root = 'F:/datasets/data/';
     
     multi_pie_labels = CollectMultiPieLabels(labels_root, multi_pie_root);

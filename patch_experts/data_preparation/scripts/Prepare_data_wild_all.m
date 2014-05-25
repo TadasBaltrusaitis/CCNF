@@ -1,7 +1,7 @@
 % Convert the training images into a suitable format
 function Prepare_data_wild_all()
 
-    % replace with folder where you downloaded the 300-W challenge data
+    % replace with folder where you downloaded and extracted the 300-W challenge data
     data_root = '../../../../../AAM/test data/';
     
     PrepareTrainingWild(data_root, 0.25);
