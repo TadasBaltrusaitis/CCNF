@@ -11,13 +11,14 @@ function [ alphas, betas, thetas, final_likelihood] = CCNF_training_bfgs(thresho
     if(iscell(x))        
         num_seqs = numel(x);
                 
+        x = cell2mat(x)';
+        % add a bias term
+        x =  cat(1, ones(1,size(x,2)), x);        
+        
         % If all of the sequences are of the same length can flatten them
         % to the same matrix
         if(const)
             
-            x = cell2mat(x)';
-            % add a bias term
-            x =  cat(1, ones(1,size(x,2)), x);
             y = cell2mat(y);
             y = reshape(y, numel(y)/num_seqs, num_seqs);
         end
