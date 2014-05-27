@@ -9,6 +9,8 @@ Some of the experiments rely on the availability of mex compiled liblinear (http
 Copyright can be found in the Copyright.txt
 
 --------------------------------------- Code Layout -----------------------------------------------------------------------------
+
+
 ./CCNF - the training and inference libraries for CCNF
 ./CCRF - the training and inference libraries for CCRF
 
