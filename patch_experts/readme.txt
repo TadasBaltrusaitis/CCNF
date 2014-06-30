@@ -10,4 +10,4 @@ You have to have the relevant datasets, to run the code, the in-the-wild dataset
 
 I suggest starting with dataset preparation then with SVR and CCNF patch expert training.
 
-The trained patch experts can then be used with the C++ CLM_framework (TODO link) and the Matlab fitting algorithms (TODO link).
+The trained patch experts can then be used with the C++ CLM_framework and the Matlab fitting algorithms (https://github.com/TadasBaltrusaitis/CLM-framework.).
