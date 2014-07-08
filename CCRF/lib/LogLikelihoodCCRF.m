@@ -1,26 +1,22 @@
-function logL = LogLikelihoodCCRF(y_coll, x_coll, masks, alphas, betas,...
-                                  lambda_a,lambda_b, PrecalcQ2Flat,...
-                                  useIndicator, SigmaInvs, ChDecomps, Sigmas)
+function logL = LogLikelihoodCCRF(y_coll, x_coll, alphas, betas,...
+                                  lambda_a,lambda_b, PrecalcBsFlat,...
+                                  SigmaInvs, ChDecomps, Sigmas)
 % Calculating the log likelihood of the CCRF with multi alpha and beta    
 
 Q = numel(y_coll);
 logL = 0;
 for q=1:Q
+    
     yq = y_coll{q};
     xq = x_coll{q};
-    mask = masks{q};
     
-    % constructing the sigma inverse
-%     [SigmaInv] = CalcSigmaCCRF(alphas, betas, PrecalcQ2{q}, mask);
-
     n = size(xq, 1);
-    % if these are not provided with the call (they might be, as
-    % calculation of gradient involves these terms)
-    
-    b = CalcbCCRF(alphas, xq, mask, useIndicator);
-        
+      
+    b = CalcbCCRF(alphas, xq);
+            
+    % constructing the sigma inverse
     if(nargin < 11)
-        [SigmaInv] = CalcSigmaCCRFflat(alphas, betas, n, PrecalcQ2Flat{q}, mask, useIndicator);
+        [SigmaInv] = CalcSigmaCCRFflat(alphas, betas, n, PrecalcBsFlat{q});
         L = chol(SigmaInv);        
         mu = SigmaInv \ b;
     else

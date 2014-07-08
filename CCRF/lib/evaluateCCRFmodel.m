@@ -1,4 +1,4 @@
-function [ correlations, rms, meanCorr, meanRMS, longCorr, longRMS, predictions, gt ] = evaluateCCRFmodel( alphas, betas, x, xOffsets, y, masks, useIndicators, similarityFNs, scaling, verbose, PrecalcQ2sFlat)
+function [ correlations, rms, meanCorr, meanRMS, longCorr, longRMS, predictions, gt ] = evaluateCCRFmodel( alphas, betas, x, xOffsets, y, similarityFNs, scaling, verbose, PrecalcBsFlat)
 %EVALUATEPRFMODEL Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -10,7 +10,7 @@ total_plots = num_x_plots * num_y_plots;
 nExamples = numel(x);
 
 if(nargin < 11)
-    [ ~, ~, PrecalcQ2sFlat, ~ ] = CalculateSimilarities( nExamples, x, similarityFNs);
+    [ ~, ~, PrecalcBsFlat, ~ ] = CalculateSimilarities( nExamples, x, similarityFNs);
 end
     
 correlations = zeros(nExamples, 1);
@@ -23,14 +23,13 @@ y_trueConcat = [];
 for q=1:nExamples
      
     X = x{q};
-    mask = masks{q};
     
     nFrames = size(X,1);
           
-    PrecalcQ2flat = PrecalcQ2sFlat{q};
+    PrecalcBflat = PrecalcBsFlat{q};
     
-    SigmaInv = CalcSigmaCCRFflat(alphas, betas, nFrames, PrecalcQ2flat, mask, useIndicators);
-    b = CalcbCCRF(alphas, x{q}, mask, useIndicators);
+    SigmaInv = CalcSigmaCCRFflat(alphas, betas, nFrames, PrecalcBflat);
+    b = CalcbCCRF(alphas, x{q});
     y_est = SigmaInv \ b;
     
 %     y_est = y_est * scaling + xOffsets(q);

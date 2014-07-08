@@ -1,45 +1,17 @@
-function [ SigmaInv] = CalcSigmaCCRFflat(alphas, betas, n, precalcQ2withoutBeta, mask, useIndicators )
+function [ SigmaInv] = CalcSigmaCCRFflat(alphas, betas, n, PrecalcB_flat)
 %CALCSIGMAPRF Summary of this function goes here
 %   Detailed explanation goes here
-% constructing the sigma
+% constructing the Sigma (that is laid out in an efficient way for
+% symmertic matrices
  
-%     A = zeros(n);
-%          
-%     for i=1:n
-% 
-%         A(i,i) = alphas' * mask(i,:)';
-% 
-%     end
+    A = sum(alphas) * eye(n);
 
-    % this is simplification of above code
-    if(useIndicators)
-        A = diag(mask * alphas);
-    else
-        A = sum(alphas) * eye(n);
-        % not faster
-%         a = mtimesx(sum(alphas), eye(n), 'SPEED');
-%         a2 = mtimesx(sum(alphas), eye(n), 'SPEEDOMP');
-    end
-        
     % calculating the B from the paper
-    
-%     for i=1:n
-%         for j=1:n
-% 
-%             if(i == j)
-%                 q2(i,j) = beta * (sum(S(i,:)) - S(i,i));
-%             else
-%                 q2(i,j) = -beta * S(i,j);
-%             end
-%         end            
-%     end
-
-    % the above code can be simplified by the following lines of code     
     % using the precalculated lower triangular elements of B without beta
-    Btmp = precalcQ2withoutBeta * betas;        
+    Btmp = PrecalcB_flat * betas;        
+    
     % not faster
-%     Btmp = mtimesx(precalcQ2withoutBeta, betas, 'SPEED');
-%     Btmp = mtimesx(precalcQ2withoutBeta, betas, 'SPEEDOMP');
+
     % now make it into a square symmetric matrix
     B = zeros(n,n);
     on = tril(true(n,n));
@@ -47,6 +19,7 @@ function [ SigmaInv] = CalcSigmaCCRFflat(alphas, betas, n, precalcQ2withoutBeta,
     B = B';
     B(on) = Btmp;
     
+    % Combine A and B
     SigmaInv = 2 * (A + B);
 
 end

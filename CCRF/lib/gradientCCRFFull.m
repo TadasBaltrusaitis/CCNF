@@ -1,10 +1,10 @@
-function [ gradientParams, SigmaInvs, CholDecomps, Sigmas ] = gradientCCRFFull( params, lambda_a, lambda_b, PrecalcQ2s, x, y, masks, PrecalcYqDs, useIndicators, PrecalcQ2sFlat)
+function [ gradientParams, SigmaInvs, CholDecomps, Sigmas ] = gradientCCRFFull( params, lambda_a, lambda_b, PrecalcBs, x, y, Precalc_yBys, PrecalcBsFlat)
 %GRADIENTPRF Summary of this function goes here
 %   Detailed explanation goes here
 
     nExamples = numel(x);
 
-    numBetas = size(PrecalcQ2sFlat{1},2);
+    numBetas = size(PrecalcBsFlat{1},2);
     numAlphas = numel(params) - numBetas;
     
     alphasInit = params(1:numAlphas);
@@ -21,12 +21,11 @@ function [ gradientParams, SigmaInvs, CholDecomps, Sigmas ] = gradientCCRFFull( 
 
         yq = y{q};
         xq = x{q};
-        mask = masks{q};
 
-        PrecalcQ2 = PrecalcQ2s{q};
-        PrecalcQ2Flat = PrecalcQ2sFlat{q};
+        PrecalcB = PrecalcBs{q};
+        PrecalcB_flat = PrecalcBsFlat{q};
         
-        [ logGradientsAlphas, logGradientsBetas, SigmaInv, CholDecomp, Sigma ] = gradientCCRF_withoutReg(alphasInit, betasInit, PrecalcQ2, xq, yq, mask, PrecalcYqDs(q, :), useIndicators, PrecalcQ2Flat);
+        [ logGradientsAlphas, logGradientsBetas, SigmaInv, CholDecomp, Sigma ] = gradientCCRF_withoutReg(alphasInit, betasInit, PrecalcB, xq, yq, Precalc_yBys(q, :), PrecalcB_flat);
         SigmaInvs{q} = SigmaInv;
         CholDecomps{q} = CholDecomp;
         Sigmas{q} = Sigma;

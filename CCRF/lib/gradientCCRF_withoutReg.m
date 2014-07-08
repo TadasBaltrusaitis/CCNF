@@ -1,14 +1,13 @@
-function [ logGradientAlphas, logGradientBetas, SigmaInv, CholDecomp, Sigma ] = gradientCCRF_withoutReg( alphas, betas, precalcQ2withoutBeta, xq, yq, mask, precalcYQ, useIndicator, PrecalcQ2Flat)
+function [ logGradientAlphas, logGradientBetas, SigmaInv, CholDecomp, Sigma ] = gradientCCRF_withoutReg( alphas, betas, precalcQ2withoutBeta, xq, yq, Precalc_yBy, PrecalcB_flat)
 %GRADIENTPRF Summary of this function goes here
 %   Detailed explanation goes here
 
     % Calculate the Sigma inverse now
-%     [SigmaInv2] = CalcSigmaCCRF(alphas, betas, precalcQ2withoutBeta, mask);
     
     % This is an optimised version as it does not use the whole matrix but
     % a lower diagonal part due to symmetry
     n = size(xq, 1);
-    [SigmaInv] = CalcSigmaCCRFflat(alphas, betas, n, PrecalcQ2Flat, mask, useIndicator);
+    [SigmaInv] = CalcSigmaCCRFflat(alphas, betas, n, PrecalcB_flat);
     
     % Get the actual sigma from out SigmaInv
     
@@ -18,12 +17,12 @@ function [ logGradientAlphas, logGradientBetas, SigmaInv, CholDecomp, Sigma ] = 
     % conjugate transpose R'; A = R'*R for real numbers, thus
     % inv(A) = inv(R)inv(R')
 
-    CholDecomp=chol(SigmaInv); % interistingely this is the bottleneck for some longer runs
+    CholDecomp=chol(SigmaInv);
     I=eye(size(SigmaInv));    
     
     % This is a way of calculating it faster than just inv(SigmaInv)
     Sigma=CholDecomp\(CholDecomp'\I);
-    b = CalcbCCRF(alphas, xq, mask, useIndicator);
+    b = CalcbCCRF(alphas, xq);
 
     % mu = SigmaInv \ b = Sigma * b;
     % as we've calculate Sigma already, this is equivalent of the above
@@ -38,20 +37,12 @@ function [ logGradientAlphas, logGradientBetas, SigmaInv, CholDecomp, Sigma ] = 
     % calculating the derivative of L with respect to alpha_k        
     for k = 1:K1
 
-        if(useIndicator)
-            dQ1da = diag(mask(:,k));
-            dbda = xq(:,k).*mask(:,k);
-            gaussGradient = -yq'*dQ1da*yq +2*yq'*dbda -2 * dbda' * mu + mu'*dQ1da*mu;
-            zGradient = Sigma(:)'*dQ1da(:);
-        else
-            % if we don't use the masks here's a speedup
-            gaussGradient = -yq'*yq +2*yq'*xq(:,k) -2 * xq(:,k)' * mu + sum(mu.^2);
-                    
-            % simplification as trace(Sigma * I) = trace(Sigma)
-            zGradient = trace(Sigma);
-        end
+        gaussGradient = -yq'*yq +2*yq'*xq(:,k) -2 * xq(:,k)' * mu + sum(mu.^2);
+
+        % simplification as trace(Sigma * I) = trace(Sigma)
+        zGradient = trace(Sigma);
         
-        % add the Z derivative now
+        % add the Z (partition function) derivative now
         dLda = zGradient + gaussGradient;
 
         logGradientAlphas(k) = dLda;
@@ -73,7 +64,7 @@ function [ logGradientAlphas, logGradientBetas, SigmaInv, CholDecomp, Sigma ] = 
         % iterations (precalcQ2withoutBeta is dSdb
         % gaussGradient = -yq'*dSdb*yq + mu'*dSdb*mu;
         % this does the above line
-        gaussGradient = precalcYQ(k) + mu'*dSdb*mu;
+        gaussGradient = Precalc_yBy(k) + mu'*dSdb*mu;
         
         % zGradient = trace(Sigma*dSdb);
         zGradient = Sigma(:)'*dSdb(:); % equivalent but faster to the above line

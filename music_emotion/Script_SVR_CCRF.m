@@ -118,7 +118,7 @@ for test_fold = 1:num_test_folds
     % train on the whole set now
     n_examples = numel(cv_samples_ccrf_ar);
     [alphas_ar, betas_ar, scaling, ~] = ...
-        CCRF_training_bfgs(n_examples, threshold_x, threshold_fun, cv_samples_ccrf_ar, cv_labels_ar_ccrf, cv_labels_ar_ccrf, cell(numel(cv_labels_ar_ccrf),1), alphas, betas, best_lambda_a_ar, best_lambda_b_ar, similarities, false);
+        CCRF_training_bfgs(n_examples, threshold_x, threshold_fun, cv_samples_ccrf_ar, cv_labels_ar_ccrf, cv_labels_ar_ccrf, alphas, betas, best_lambda_a_ar, best_lambda_b_ar, similarities);
     scaling = 1;
     % Do svr prediction on the test set
     prediction_ar = svmpredict(cell2mat(testLabels_ar{test_fold}), cell2mat(testSamples{test_fold}), model_ar);
@@ -130,14 +130,14 @@ for test_fold = 1:num_test_folds
     
     % Evaluate on the test set
     [correlations_ar{test_fold}, RMS_ar{test_fold},~, ~,long_correlations_ar(test_fold), long_RMS_ar(test_fold), pred_ar, gts_ar ] = ...
-            evaluateCCRFmodel(alphas_ar, betas_ar, prediction_ar, x_offsets_ar, testLabels_ar{test_fold}, cell(numel(testLabels_ar{test_fold}),1), false, similarities, scaling, false);
+            evaluateCCRFmodel(alphas_ar, betas_ar, prediction_ar, x_offsets_ar, testLabels_ar{test_fold}, similarities, scaling, false);
     fprintf('CCRF corr on test arousal: %.3f, rmse: %.3f \n', long_correlations_ar(test_fold), long_RMS_ar(test_fold));
 
     predictions_ar{test_fold} = pred_ar;
     gt_ar{test_fold} = gts_ar; 
                     
     [alphas_val, betas_val, scaling, ~] = ...
-        CCRF_training_bfgs(n_examples, threshold_x, threshold_fun, cv_samples_ccrf_val, cv_labels_val_ccrf, cv_labels_val_ccrf, cell(numel(cv_labels_val_ccrf),1), alphas, betas, best_lambda_a_val, best_lambda_b_val, similarities, false);
+        CCRF_training_bfgs(n_examples, threshold_x, threshold_fun, cv_samples_ccrf_val, cv_labels_val_ccrf, cv_labels_val_ccrf, alphas, betas, best_lambda_a_val, best_lambda_b_val, similarities);
     scaling = 1;
     % Do svr prediction on the test set
     prediction_val = svmpredict(cell2mat(testLabels_val{test_fold}), cell2mat(testSamples{test_fold}), model_val);
@@ -149,7 +149,7 @@ for test_fold = 1:num_test_folds
     
     % Evaluate on the test set
     [correlations_val{test_fold}, RMS_val{test_fold},~, ~,long_correlations_val(test_fold), long_RMS_val(test_fold), pred_val, gts_val ] = ...
-            evaluateCCRFmodel(alphas_val, betas_val, prediction_val, x_offsets_val, testLabels_val{test_fold}, cell(numel(testLabels_val{test_fold}),1), false, similarities, scaling, false);
+            evaluateCCRFmodel(alphas_val, betas_val, prediction_val, x_offsets_val, testLabels_val{test_fold}, similarities, scaling, false);
 
     fprintf('CCRF corr on test valence: %.3f, rmse: %.3f \n', long_correlations_val(test_fold), long_RMS_val(test_fold));
 

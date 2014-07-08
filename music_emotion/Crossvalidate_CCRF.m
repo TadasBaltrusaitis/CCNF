@@ -16,6 +16,7 @@ function [ best_lambda_a, best_lambda_b, ...
 
     [ inds_cv_train, inds_cv_test ] = GetFolds(size(samples,1), num_cv_folds);
 
+    
     % CCNF crossvalidation here
     for i = 1:num_cv_folds
                
@@ -28,7 +29,12 @@ function [ best_lambda_a, best_lambda_b, ...
         test_labels = labels(inds_cv_test(:,i),:);
         test_samples = samples(inds_cv_test(:,i),:);
         test_labels_unnormed = labels_unnormed(inds_cv_test(:,i),:);
-        
+
+        n_examples = numel(train_samples);
+
+        % Some precalculation for speed
+        [ ~, PrecalcBs, PrecalcBsFlat, Precalc_yBys ] = CalculateSimilarities( n_examples, train_samples, similarities, train_labels );
+
         for a = 1:numel(lambdas_a)
             
             alphas = 1 * ones(input_layer_size,1);
@@ -43,12 +49,10 @@ function [ best_lambda_a, best_lambda_b, ...
                 cv_lambda_a_vals(a, b) = lambda_a;
                 cv_lambda_b_vals(a, b) = lambda_b;
                 
-                % Training
-                n_examples = numel(train_samples);
-                [alphas_CCRF, betas_CCRF, scaling, ~] = CCRF_training_bfgs(n_examples, threshold_x, threshold_fun, train_samples, train_labels, train_labels_unnormed, cell(numel(train_labels),1), alphas, betas, lambda_a, lambda_b, similarities, false);
+                [alphas_CCRF, betas_CCRF, scaling, ~] = CCRF_training_bfgs(n_examples, threshold_x, threshold_fun, train_samples, train_labels, train_labels_unnormed, alphas, betas, lambda_a, lambda_b, similarities, 'PrecalcBs', PrecalcBs, 'PrecalcBsFlat', PrecalcBsFlat, 'Precalc_yBys', Precalc_yBys);
 
                 %--- Evaluation on test partition
-                [corrs_test,rmss_test,~, mean_rms, longCorrTest, longRMSTest] = evaluateCCRFmodel(alphas_CCRF, betas_CCRF, test_samples, zeros(numel(test_samples),1), test_labels_unnormed, cell(numel(train_labels),1), false, similarities, scaling, false);
+                [corrs_test,rmss_test,~, mean_rms, longCorrTest, longRMSTest] = evaluateCCRFmodel(alphas_CCRF, betas_CCRF, test_samples, zeros(numel(test_samples),1), test_labels_unnormed, similarities, scaling, false);
                 
                 errs = mean_rms;
                 corrs = longCorrTest;

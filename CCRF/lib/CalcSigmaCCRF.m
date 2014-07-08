@@ -1,35 +1,13 @@
-function [ SigmaInv] = CalcSigmaCCRF(alphas, betas, precalcQ2withoutBeta, mask, useIndicators )
+function [ SigmaInv] = CalcSigmaCCRF(alphas, betas, precalcBwithoutBeta )
 %CALCSIGMAPRF Summary of this function goes here
 %   Detailed explanation goes here
 % constructing the sigma
  
     % the number of elements in a current sequence
-    n = size(precalcQ2withoutBeta{1},1);
+    n = size(precalcBwithoutBeta{1},1);
 
-%     q1 = zeros(n);
-%          
-%     for i=1:n
-% 
-%         q1(i,i) = alphas' * mask(i,:)';
-% 
-%     end
-
-    % this is simplification of above code
-    if(useIndicators)
-        q1 = diag(mask * alphas);
-    else
-        q1 = sum(alphas) * eye(n);
-    end
-%     for i=1:n
-%         for j=1:n
-% 
-%             if(i == j)
-%                 q2(i,j) = beta * (sum(S(i,:)) - S(i,i));
-%             else
-%                 q2(i,j) = -beta * S(i,j);
-%             end
-%         end            
-%     end
+    q1 = sum(alphas) * eye(n);
+ 
     % the above code can be simplified by the following 2 lines of the
     % inner loop, we want to do that for every beta however
     K2 = numel(betas);
@@ -46,7 +24,7 @@ function [ SigmaInv] = CalcSigmaCCRF(alphas, betas, precalcQ2withoutBeta, mask, 
 %         q = betas(i) * D - betas(i) * S;
 %         q2s(:,:,i) = q;
 %         q2 = q2 + betas(i)*precalcQ2withoutBeta(:,:,i);
-        q2 = q2 + betas(i)*precalcQ2withoutBeta{i};
+        q2 = q2 + betas(i)*precalcBwithoutBeta{i};
     end
     % This is another alternative, does not seem to be faster
 %     q2old = sum(bsxfun(@times, precalcQ2withoutBeta, reshape(betas,[1,1,K2])),3);

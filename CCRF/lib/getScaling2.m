@@ -1,4 +1,4 @@
-function [ scaling ] = getScaling2(  alphas, betas, x, y, masks, PrecalcQ2s, useIndicator)
+function [ scaling ] = getScaling2(  alphas, betas, x, y, PrecalcBs)
 %getScaling Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -10,12 +10,11 @@ cat_y_pred = [];
 
 for q=1:nExamples
      
-    mask = masks{q};
     
-    PrecalcQ2 = PrecalcQ2s{q};
-    SigmaInv = CalcSigmaCCRF(alphas, betas, PrecalcQ2, mask, useIndicator);
+    PrecalcB = PrecalcBs{q};
+    SigmaInv = CalcSigmaCCRF(alphas, betas, PrecalcB);
 
-    b = CalcbCCRF(alphas, x{q}, mask, useIndicator);
+    b = CalcbCCRF(alphas, x{q});
     y_est = SigmaInv \ b;
         
     cat_y = cat(1, cat_y, y{q} - mean(y{q}));
