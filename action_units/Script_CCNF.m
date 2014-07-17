@@ -41,7 +41,7 @@ shared_defs;
 
 users = vid_user';
 
-for a=7:numel(aus)
+for a=1:numel(aus)
     
     au = aus(a);
     
