@@ -33,9 +33,9 @@ for i=1:numel(profile_views)
         AppendTraining(trainingLoc, profile_views(i), scaling, sigma, visiIndex, centres, patch_experts, ratio_neg, num_samples, varargin{:});
     fprintf('Profile %d done\n', i);
     
-end
+    imgs_used = cat(1, imgs_used, imgs_used_profile);
 
-imgs_used = cat(1, imgs_used, imgs_used_profile);
+end
 
 % saving time by not retraining mirrored (left/right) views, but just
 % filpping the patch expert

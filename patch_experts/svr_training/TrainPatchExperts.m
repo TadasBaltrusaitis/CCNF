@@ -32,11 +32,15 @@ function [correlations, rms_errors, patch_experts, visi_index, centres, normalis
     for j=1:numPoints
         
         % can only do mirroring if there is no yaw
-        if(numPoints == 68 && centres(2) == 0)
+        if((numPoints == 68 || numPoints == 29 )&& centres(2) == 0)
             % Do not redo a mirror feature (just flip them)
-            mirrorInds = [1,17;2,16;3,15;4,14;5,13;6,12;7,11;8,10;18,27;19,26;20,25;21,24;22,23;...
-                  32,36;33,35;37,46;38,45;39,44;40,43;41,48;42,47;49,55;50,54;51,53;60,56;59,57;...
-                  61,65;62,64;68,66];                
+            if(numPoints == 68)
+                mirrorInds = [1,17;2,16;3,15;4,14;5,13;6,12;7,11;8,10;18,27;19,26;20,25;21,24;22,23;...
+                      32,36;33,35;37,46;38,45;39,44;40,43;41,48;42,47;49,55;50,54;51,53;60,56;59,57;...
+                      61,65;62,64;68,66];     
+            else
+                mirrorInds = [1,2; 3,4; 5,7; 6,8; 9,10; 11,12; 13,15; 14,16; 17,18; 19,20; 23,24];                
+            end
             mirror_idx = j;
             if(any(mirrorInds(:,1)==j))
                 mirror_idx = mirrorInds(mirrorInds(:,1)==j,2);
