@@ -36,9 +36,6 @@ neural_layers = [5, 10];
 % Load the data and AU definitions
 shared_defs;
 
-%% load shared definitions
-shared_defs;
-
 users = vid_user';
 
 for a=1:numel(aus)
@@ -46,7 +43,6 @@ for a=1:numel(aus)
     au = aus(a);
     
     %%
-    num_cv_folds = 2;
     
     for test_fold = 1:num_test_folds
         
@@ -55,7 +51,7 @@ for a=1:numel(aus)
         test_users = setdiff(1:num_test_folds, test_fold);
         rest_aus = setdiff(aus, au);
         
-        [data_train, labels_train, data_valid, labels_valid, data_test, labels_test, Ws, seq_length] = collect_training_data(data_appearance, data_geom, patches_around_landmarks, vid_id, au_patches{a}, au, rest_aus, users, test_users, train_users);
+        [data_train, labels_train, data_valid, labels_valid, data_test, labels_test, ~, seq_length] = collect_training_data(data_appearance, data_geom, patches_around_landmarks, vid_id, au_patches{a}, au, rest_aus, users, test_users, train_users, out_dir);
 
         % normalise to 0 - 1
         labels_test = labels_test/5;

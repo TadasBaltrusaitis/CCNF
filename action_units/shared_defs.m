@@ -33,6 +33,7 @@ else
     fprintf('DISFA location not found (or not defined)\n'); 
 end
 
+% out_dir = [DISFA_dir, '/tpami_features/'];
 out_dir = [DISFA_dir, '/eccv_features/'];
 
 patch_size = 25;

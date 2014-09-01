@@ -1,8 +1,9 @@
-function [data_train, labels_train, data_valid, labels_valid, data_test, labels_test, Ws, sample_length, split] = ...
-    collect_training_data(appearance_data, geom_data, landmarks_in_data, video_ids, landmarks_of_interest, au_train, rest_aus, users, train_users, test_users)
+function [data_train, labels_train, data_valid, labels_valid, data_test, labels_test, dummy, sample_length, split] = ...
+    collect_training_data(appearance_data, geom_data, landmarks_in_data, video_ids, landmarks_of_interest, au_train, rest_aus, users, train_users, test_users, tmp_data_dir)
+dummy = 1;
 
 %% This should be a separate function?
-    
+
 input_label_files = cell(numel(users),1);
 
 % This is for loading the labels
@@ -18,7 +19,10 @@ for i=1:numel(users)
     
     input_label_files{i} = [root, '/ActionUnit_Labels/', users{i}, '/', users{i}];
 end
+out_dir = [tmp_data_dir, '/precomputed/'];
+out_file = [out_dir, sprintf('%d_%d.mat', test_users(1), au_train)];
 
+if(~exist(out_file, 'file'))
 % Extracting the labels
 labels_all = extract_au_labels(input_label_files, au_train);
 
@@ -148,6 +152,15 @@ data_valid = bsxfun(@times, data_valid, 1./scaling);
 
 data_test = bsxfun(@minus, data_test, offsets);
 data_test = bsxfun(@times, data_test, 1./scaling);
+
+if(~exist(out_dir, 'file'))
+   mkdir(out_dir);
+end
+
+save(out_file, 'data_train', 'labels_train', 'data_valid', 'labels_valid', 'data_test', 'labels_test', 'dummy', 'sample_length', 'split');
+else
+   load( out_file);
+end
 
 end
 
