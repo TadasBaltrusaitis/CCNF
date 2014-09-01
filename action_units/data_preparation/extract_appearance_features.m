@@ -68,7 +68,7 @@ for v=1:numel(vids)
     % places in read function) or surround it with an empty try catch
     % statement
         
-    step_size = 600;
+    step_size = 200;
     
     frame = 0;
     

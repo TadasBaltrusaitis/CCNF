@@ -111,9 +111,9 @@ for test_fold = 1:num_test_folds
                 num_cv_folds, threshold_x, threshold_fun, lambdas_a, lambdas_b, lambdas_th, neural_layers, reinit, 'lbfgs', 'max_iter', max_iter);
 
     % save the information about the current fold        
-    cv_corrs_long_ar{test_fold} = cv_corr_res_val;
+    cv_corrs_long_ar{test_fold} = cv_corr_res_ar;
     cv_rmss_long_ar{test_fold} = cv_rms_res_val;    
-    cv_corrs_ar{test_fold} = cv_short_corr_val;
+    cv_corrs_ar{test_fold} = cv_short_corr_ar;
     cv_rmss_ar{test_fold} = cv_short_rms_val;
 
     best_lambdas_a_val(test_fold) = best_lambda_a_val;
