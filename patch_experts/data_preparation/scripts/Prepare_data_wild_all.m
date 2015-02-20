@@ -2,7 +2,7 @@
 function Prepare_data_wild_all()
 
     % replace with folder where you downloaded and extracted the 300-W challenge data
-    data_root = '../../../../../AAM/test data/';
+    data_root = 'F:\Dropbox\Dropbox\AAM\test data/';
     
     PrepareTrainingWild(data_root, 0.25);
     PrepareTrainingWild(data_root, 0.35);
@@ -58,8 +58,7 @@ function PrepareTrainingWild( data_root, training_scale )
         end
         
         for p=1:numel(curr_labels)
-            landmarks = importdata([dataset_locs{i}, curr_labels(p).name], ' ', 3);
-            landmarks = landmarks.data;
+            landmarks = dlmread([dataset_locs{i}, curr_labels(p).name], ' ', [3,0,68+2,1]) - 0.5;
             landmark_labels = cat(3, landmark_labels, landmarks);
             img_locations = cat(1, img_locations, [dataset_locs{i} imgs(p).name]);
         end
@@ -178,7 +177,7 @@ function PrepareTrainingWild( data_root, training_scale )
             flippedImg = fliplr(squeeze(mirrorImgs(i,:,:)));
                     
             flippedLbls = squeeze(mirrorLbls(i,:,:));
-            flippedLbls(:,1) = imgSize(1) - flippedLbls(:,1);
+            flippedLbls(:,1) = imgSize(1) - flippedLbls(:,1) + 1;
             
             tmp1 = flippedLbls(mirror_inds(:,1),:);
             tmp2 = flippedLbls(mirror_inds(:,2),:);            

@@ -2,7 +2,7 @@ function Prepare_data_Multi_PIE_all()
 
     % This bit collects all of the multi-pie labels into a single structure for
     % easy access
-    labels_root = '../../test_data/MultiPie/';
+    labels_root = 'F:\Dropbox\Dropbox\AAM\test data\MultiPI_AAM/';
     
     % The location of the Multi-PIE data folder
     multi_pie_root = 'F:/datasets/data/';
@@ -306,9 +306,12 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
     % go through all images and add to corresponding container
     for lbl=1:num_imgs                   
 
+        occluded = labels(:,1) == 0;
         labels = landmark_labels(:,:,lbl);
         
-        occluded = labels(:,1) == 0;
+        % Convert the labels to matlab format (we expect 1,1 to represent
+        % the center of the top left pixel)
+        labels = labels + 1.0;
         
         imgCol = imread(img_locations{lbl});
 
@@ -383,7 +386,7 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
             flippedImg = fliplr(squeeze(mirrorImgs(i,:,:)));
                     
             flippedLbls = squeeze(mirrorLbls(i,:,:));
-            flippedLbls(:,1) = img_size(1) - flippedLbls(:,1);
+            flippedLbls(:,1) = img_size(1) - flippedLbls(:,1) + 1;
             
             tmp1 = flippedLbls(mirror_inds(:,1),:);
             tmp2 = flippedLbls(mirror_inds(:,2),:);            
