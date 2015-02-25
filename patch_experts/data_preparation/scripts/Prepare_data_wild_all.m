@@ -2,7 +2,7 @@
 function Prepare_data_wild_all()
 
     % replace with folder where you downloaded and extracted the 300-W challenge data
-    data_root = 'F:\Dropbox\Dropbox\AAM\test data/';
+    data_root = 'C:\Users\tb346\Dropbox\AAM\test data/';
     
     PrepareTrainingWild(data_root, 0.25);
     PrepareTrainingWild(data_root, 0.35);
@@ -58,7 +58,7 @@ function PrepareTrainingWild( data_root, training_scale )
         end
         
         for p=1:numel(curr_labels)
-            landmarks = dlmread([dataset_locs{i}, curr_labels(p).name], ' ', [3,0,68+2,1]) - 0.5;
+            landmarks = dlmread([dataset_locs{i}, curr_labels(p).name], ' ', [3,0,68+2,1]);
             landmark_labels = cat(3, landmark_labels, landmarks);
             img_locations = cat(1, img_locations, [dataset_locs{i} imgs(p).name]);
         end
@@ -105,7 +105,8 @@ function PrepareTrainingWild( data_root, training_scale )
     % go through all images and add to corresponding container
     for lbl=1:num_imgs                   
 
-        labels = landmark_labels(:,:,lbl);
+        % shift the pixels to be centered on pixel as opposed to top left
+        labels = landmark_labels(:,:,lbl) - 0.5;
         
         imgCol = imread(img_locations{lbl});
 
@@ -118,7 +119,8 @@ function PrepareTrainingWild( data_root, training_scale )
 
         resizeColImage = imresize(imgCol, scalingFactor, 'bilinear');
 
-        labels = labels * scalingFactor;
+        % as we are performing 1 based indexing (where 1 is pixel center) need to shift it
+        labels = (labels - 0.5) * scalingFactor + 0.5;
 
         % we want to crop out the image now
         meanX = round(mean(labels(:,1)));
