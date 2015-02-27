@@ -60,6 +60,12 @@ for i=samples_to_use
 
         % create a gaussian
         corrPoint = landmarkLoc(i,landmark,:);
+        
+        % Ignore occluded points
+        if(corrPoint(1) == 0)
+           break; 
+        end
+                
         startX = 1 - corrPoint(1);
         startY = 1 - corrPoint(2);
 

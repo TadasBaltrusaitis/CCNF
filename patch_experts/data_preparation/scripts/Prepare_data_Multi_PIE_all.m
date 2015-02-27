@@ -306,12 +306,14 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
     % go through all images and add to corresponding container
     for lbl=1:num_imgs                   
 
-        occluded = labels(:,1) == 0;
         labels = landmark_labels(:,:,lbl);
+        occluded = labels(:,1) == 0;
         
         % Convert the labels to matlab format (we expect 1,1 to represent
         % the center of the top left pixel)
-        labels = labels + 1.0;
+        labels = labels + 1;
+        
+        labels(occluded,:) = 0;
         
         imgCol = imread(img_locations{lbl});
 
@@ -324,7 +326,8 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
 
         resizeColImage = imresize(imgCol, scalingFactor, 'bilinear');
 
-        labels = labels * scalingFactor;
+        % as we are performing 1 based indexing (where 1 is pixel center) need to shift it
+        labels = (labels - 0.5) * scalingFactor + 0.5;
 
         % we want to crop out the image now
         meanX = round(mean(labels(~occluded,1)));
@@ -381,6 +384,7 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
         mirrorImgs = allExamplesColourAllViews{mirrorIdx}(1:counter_colour(mirrorIdx),:,:);
         mirrorLbls = landmarkLocationsAllViews{mirrorIdx}(1:counter_colour(mirrorIdx),:,:);
         
+                        
         for i=1:size(mirrorImgs,1)
            
             flippedImg = fliplr(squeeze(mirrorImgs(i,:,:)));
@@ -415,10 +419,10 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
         % identify the visibility of a point
         num_visible = sum(landmark_locations(:,:,1)~=0);
         visible_max = max(num_visible);
-                        
+
         visiIndex = ones(1,68);
         visiIndex(num_visible < 0.5*visible_max) = 0;
-        
+                
         % Cap at two thousand images for space reasons, and because more
         % wouldn't actually be used        
         max_images = 2000;

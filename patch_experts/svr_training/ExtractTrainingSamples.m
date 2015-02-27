@@ -55,6 +55,12 @@ for i=samples_to_use
 
         % create a gaussian
         corrPoint = landmarkLoc(i,landmark,:);
+        
+        % Ignore occluded points
+        if(corrPoint(1) == 0)
+           break; 
+        end
+        
         startX = 1 - corrPoint(1);
         startY = 1 - corrPoint(2);
 
@@ -94,8 +100,6 @@ for i=samples_to_use
         
         side = (single_input_size - 1)/2;
         responses = response(sample_centre(2) - side(2):sample_centre(2) + side(2), sample_centre(1) - side(1):sample_centre(1) + side(1));
-
-
 
         % if we want to normalise each patch individualy do it here
 
