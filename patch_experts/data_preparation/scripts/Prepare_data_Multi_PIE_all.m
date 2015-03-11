@@ -229,10 +229,8 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
     img_locations = cell(numel(multi_pie_labels),1);
     
     for i=1:numel(multi_pie_labels)
-       
-        lighting = randi(20);
-        
-        img_locations{i} = [multi_pie_labels(i).img_dir, multi_pie_labels(i).img_locs{lighting}];
+               
+        img_locations{i} = [multi_pie_labels(i).img_dir, multi_pie_labels(i).actual_img];
         landmark_labels(:,:,i) = multi_pie_labels(i).landmark_labels;
         
     end        
@@ -295,7 +293,7 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
     
     for r=1:size(centres_all,1)
 
-        allExamplesColourAllViews{r} = uint8(zeros(counter_colour(r), img_size(1), img_size(2)));
+        allExamplesColourAllViews{r} = zeros(counter_colour(r), img_size(1), img_size(2));
         landmarkLocationsAllViews{r} = zeros(counter_colour(r), num_landmarks, 2);
 
         actual_imgs_used_all_views{r} = cell(counter_colour(r), 1);        
@@ -320,6 +318,8 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
         if(size(imgCol,3) == 3)
             imgCol = rgb2gray(imgCol);
         end
+                       
+        imgCol = double(imgCol) / 255.0;
         
         % resize the image to desired scale
         scalingFactor = training_scale / scales(lbl);
@@ -381,39 +381,45 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
             continue
         end
         
-        mirrorImgs = allExamplesColourAllViews{mirrorIdx}(1:counter_colour(mirrorIdx),:,:);
-        mirrorLbls = landmarkLocationsAllViews{mirrorIdx}(1:counter_colour(mirrorIdx),:,:);
+        % Cap at a thousand images for space reasons, and because more
+        % wouldn't actually be used        
+        max_images = 1000;
         
-                        
-        for i=1:size(mirrorImgs,1)
-           
-            flippedImg = fliplr(squeeze(mirrorImgs(i,:,:)));
-                    
-            flippedLbls = squeeze(mirrorLbls(i,:,:));
-            flippedLbls(:,1) = img_size(1) - flippedLbls(:,1) + 1;
-            
-            tmp1 = flippedLbls(mirror_inds(:,1),:);
-            tmp2 = flippedLbls(mirror_inds(:,2),:);            
-            flippedLbls(mirror_inds(:,2),:) = tmp1;
-            flippedLbls(mirror_inds(:,1),:) = tmp2;   
+        if(counter_colour(r) < max_images)
         
-            mirrorImgs(i,:,:) = flippedImg;
-            mirrorLbls(i,:,:) = flippedLbls;
-            
-            % Ensure that after mirroring invalid (occluded) feature points
-            % are set to 0 in both x and y dims
-            mirrorLbls(i,flippedLbls(:,2)==0,1) = 0;
-            
-        end
-        
-        all_images = cat(1, allExamplesColourAllViews{r}(1:counter_colour(r),:,:), mirrorImgs);
-        all_images = uint8(all_images);
-        
-        landmark_locations = cat(1, landmarkLocationsAllViews{r}(1:counter_colour(r),:,:), mirrorLbls);
-        
-        actual_imgs_used = actual_imgs_used_all_views{r};
-        actual_imgs_used = cat(1, actual_imgs_used_all_views{r}, actual_imgs_used_all_views{mirrorIdx});
-        
+            mirrorImgs = allExamplesColourAllViews{mirrorIdx}(1:counter_colour(mirrorIdx),:,:);
+            mirrorLbls = landmarkLocationsAllViews{mirrorIdx}(1:counter_colour(mirrorIdx),:,:);
+
+            for i=1:size(mirrorImgs,1)
+
+                flippedImg = fliplr(squeeze(mirrorImgs(i,:,:)));
+
+                flippedLbls = squeeze(mirrorLbls(i,:,:));
+                flippedLbls(:,1) = img_size(1) - flippedLbls(:,1) + 1;
+
+                tmp1 = flippedLbls(mirror_inds(:,1),:);
+                tmp2 = flippedLbls(mirror_inds(:,2),:);            
+                flippedLbls(mirror_inds(:,2),:) = tmp1;
+                flippedLbls(mirror_inds(:,1),:) = tmp2;   
+
+                mirrorImgs(i,:,:) = flippedImg;
+                mirrorLbls(i,:,:) = flippedLbls;
+
+                % Ensure that after mirroring invalid (occluded) feature points
+                % are set to 0 in both x and y dims
+                mirrorLbls(i,flippedLbls(:,2)==0,1) = 0;
+
+            end
+
+            all_images = cat(1, allExamplesColourAllViews{r}(1:counter_colour(r),:,:), mirrorImgs);        
+            landmark_locations = cat(1, landmarkLocationsAllViews{r}(1:counter_colour(r),:,:), mirrorLbls);           
+            actual_imgs_used = cat(1, actual_imgs_used_all_views{r}, actual_imgs_used_all_views{mirrorIdx});
+        else
+            all_images = allExamplesColourAllViews{r}(1:counter_colour(r),:,:);
+            landmark_locations = landmarkLocationsAllViews{r}(1:counter_colour(r),:,:);
+            actual_imgs_used = actual_imgs_used_all_views{r};                  
+        end        
+  
         centres = centres_all(r,:);
 
         % identify the visibility of a point
@@ -423,10 +429,6 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
         visiIndex = ones(1,68);
         visiIndex(num_visible < 0.5*visible_max) = 0;
                 
-        % Cap at two thousand images for space reasons, and because more
-        % wouldn't actually be used        
-        max_images = 2000;
-    
         if(size(all_images,1) > max_images)
             im_to_select = randperm(size(all_images,1));
             im_to_select = im_to_select(1:max_images);

@@ -2,7 +2,7 @@
 function Prepare_data_wild_all()
 
     % replace with folder where you downloaded and extracted the 300-W challenge data
-    data_root = 'C:\Users\tb346\Dropbox\AAM\test data/';
+    data_root = 'F:\Dropbox\Dropbox\AAM/test data/';
     
     PrepareTrainingWild(data_root, 0.25);
     PrepareTrainingWild(data_root, 0.35);
@@ -114,6 +114,8 @@ function PrepareTrainingWild( data_root, training_scale )
             imgCol = rgb2gray(imgCol);
         end
         
+        imgCol = double(imgCol) / 255.0;
+        
         % resize the image to desired scale
         scalingFactor = training_scale / scales(lbl);
 
@@ -192,7 +194,6 @@ function PrepareTrainingWild( data_root, training_scale )
         end
         
         all_images = cat(1, allExamplesColourAllViews{r}(1:counter_colour(r),:,:), mirrorImgs);
-        all_images = uint8(all_images);
         
         landmark_locations = cat(1, landmarkLocationsAllViews{r}(1:counter_colour(r),:,:), mirrorLbls);
         
