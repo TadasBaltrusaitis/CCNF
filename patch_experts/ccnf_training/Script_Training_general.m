@@ -13,7 +13,7 @@ frontalView = 1;
 profileViewInds = [2,3,4];
 
 version = 'general';
-ratio_neg = 5;
+ratio_neg = 10;
 norm = 1;
 
 data_loc = 'combined_';

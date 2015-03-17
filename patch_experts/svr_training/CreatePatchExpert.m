@@ -46,7 +46,7 @@ function [ patch_expert, corr, rms_error] = CreatePatchExpert( samples, labels, 
     
     % Assert that our implementation and the convolution based one are equivalent    
     [~, ~, responses_svm] = EvaluatePatchExpert(samples(1:size(unnormed_samples,1)*region_length,:), labels(1:size(unnormed_samples,1)*region_length), patch_expert, false);
-    [responses_ncc] = SVR_expert_ncc_response(double(uint8(unnormed_samples*255)), patch_expert, normalisation_options, normalisation_options.normalisationRegion, region_length);
+    [responses_ncc] = SVR_expert_ncc_response(unnormed_samples, patch_expert, normalisation_options, normalisation_options.normalisationRegion, region_length);
     assert(mean(abs(responses_svm-responses_ncc))< 1e-2);
     
 end
