@@ -94,7 +94,7 @@ function PrepareTrainingWild( data_root, training_scale )
     
     for r=1:size(centres_all,1)
 
-        allExamplesColourAllViews{r} = zeros(counter_colour(r), imgSize(1), imgSize(2));
+        allExamplesColourAllViews{r} = uint8(zeros(counter_colour(r), imgSize(1), imgSize(2)));
         landmarkLocationsAllViews{r} = zeros(counter_colour(r), num_landmarks, 2);
 
         actual_imgs_used_all_views{r} = cell(counter_colour(r), 1);        
@@ -112,9 +112,7 @@ function PrepareTrainingWild( data_root, training_scale )
 
         if(size(imgCol,3) == 3)
             imgCol = rgb2gray(imgCol);
-        end
-        
-        imgCol = double(imgCol) / 255.0;
+        end        
         
         % resize the image to desired scale
         scalingFactor = training_scale / scales(lbl);

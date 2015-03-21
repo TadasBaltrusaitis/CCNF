@@ -197,7 +197,7 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
     
     %%
     addpath('PDM_helpers/');
-    load 'PDM_helpers/pdm_68_multi_pie.mat';
+    load 'PDM_helpers/pdm_68_aligned_wild.mat';
 
     output_location = '../prepared_data/mpie_';
     output_location = [output_location num2str(training_scale,3)];
@@ -227,10 +227,15 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
     
     landmark_labels = zeros(68,2,numel(multi_pie_labels));
     img_locations = cell(numel(multi_pie_labels),1);
+    extra_locations = cell(numel(multi_pie_labels),1);
+    img_dirs = cell(numel(multi_pie_labels),1);
     
     for i=1:numel(multi_pie_labels)
                
         img_locations{i} = [multi_pie_labels(i).img_dir, multi_pie_labels(i).actual_img];
+        extra_locations{i} =  multi_pie_labels(i).img_locs;        
+        img_dirs{i} =  multi_pie_labels(i).img_dir;
+        
         landmark_labels(:,:,i) = multi_pie_labels(i).landmark_labels;
         
     end        
@@ -291,12 +296,32 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
     allExamplesColourAllViews = cell(size(centres_all,1),1);    
     landmarkLocationsAllViews = cell(size(centres_all,1),1); 
     
+    % if we don't have enough labelled original images add ones from diff
+    % lighting conditions (that might not be perfectly labelled, but they
+    % are better than fewer images)
+    images_aim = 2000;
+    extra_factors = ones(size(counter_colour));
+    
     for r=1:size(centres_all,1)
 
-        allExamplesColourAllViews{r} = zeros(counter_colour(r), img_size(1), img_size(2));
+         % see if extra is needed        
+        mirrorIdx = find(sum(abs(centres_all - repmat([centres_all(r,1), -centres_all(r,2), -centres_all(r,3)], size(centres_all,1),1)),2)==0);        
+        count = counter_colour(r) + counter_colour(mirrorIdx);
+                        
+        if(count < images_aim)
+            extra_factors(r) = images_aim / count;
+        end
+        
+    end
+    
+    for r=1:size(centres_all,1)
+        counter_colour(r) = round(counter_colour(r) * extra_factors(r));
+            
+        allExamplesColourAllViews{r} = uint8(zeros(counter_colour(r), img_size(1), img_size(2)));
         landmarkLocationsAllViews{r} = zeros(counter_colour(r), num_landmarks, 2);
 
-        actual_imgs_used_all_views{r} = cell(counter_colour(r), 1);        
+        actual_imgs_used_all_views{r} = cell(counter_colour(r), 1);                                    
+
     end
     
     counter_colour = zeros(num_centers,1);
@@ -312,15 +337,13 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
         labels = labels + 1;
         
         labels(occluded,:) = 0;
-        
+                
         imgCol = imread(img_locations{lbl});
 
         if(size(imgCol,3) == 3)
             imgCol = rgb2gray(imgCol);
         end
-                       
-        imgCol = double(imgCol) / 255.0;
-        
+                               
         % resize the image to desired scale
         scalingFactor = training_scale / scales(lbl);
 
@@ -366,9 +389,67 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
 
         landmarkLocationsAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = labels;
         actual_imgs_used_all_views{views(lbl)}{counter_colour(views(lbl))} = img_locations{lbl};
+        
+        % Here to add extra images if missing and not filled yet
+        if(extra_factors(views(lbl)) > 1 && counter_colour(views(lbl)) < numel(actual_imgs_used_all_views{views(lbl)}))
+           
+            factor = extra_factors(views(lbl));
+            
+            % pick if to use this image or not
+            if(randi(100) > (factor - floor(factor)) * 100)
+                factor = floor(factor);
+            else
+                factor = ceil(factor);
+            end
+            
+            while(factor > 1)
+                
+                lighting_id =  randi(20);
+                [~, img_orig, ext] = fileparts(img_locations{lbl});
+                img_orig = [img_orig, ext];
+                if( strcmp(img_orig, extra_locations{lbl}{lighting_id}))
+                    lighting_id = lighting_id + 1;
+                    if(lighting_id > 20)
+                        lighting_id = 1;
+                    end
+                end
+                img_loc = [img_dirs{lbl}, extra_locations{lbl}{lighting_id}];
+                imgCol = imread(img_loc);
+
+                if(size(imgCol,3) == 3)
+                    imgCol = rgb2gray(imgCol);
+                end
+
+                % resize the image to desired scale
+                scalingFactor = training_scale / scales(lbl);
+
+                resizeColImage = imresize(imgCol, scalingFactor, 'bilinear');
+                
+                if(endX > size(resizeColImage,2))
+                    resizeColImage = cat(2, resizeColImage, zeros(size(resizeColImage,1), endX - size(resizeColImage,2)));
+                end
+
+                if(endY > size(resizeColImage,1))
+                    resizeColImage = cat(1, resizeColImage, zeros(endY - size(resizeColImage,1), size(resizeColImage,2)));
+                end
+                resizeColImage = resizeColImage(startY:endY,startX:endX);        
+
+                counter_colour(views(lbl)) = counter_colour(views(lbl)) + 1;
+
+                allExamplesColourAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = resizeColImage;
+
+                landmarkLocationsAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = labels;
+                actual_imgs_used_all_views{views(lbl)}{counter_colour(views(lbl))} = img_loc;
+                factor = factor - 1;
+            end
+            
+        end
+        % Make sure same one not added as well
+        
         if(mod(lbl, 100) == 0)
             fprintf('%d/%d done\n', lbl, num_imgs);
         end
+        
     end
     
     % write out the training data for each view
@@ -381,45 +462,38 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
             continue
         end
         
-        % Cap at a thousand images for space reasons, and because more
+        % Cap to two thousand images for space reasons, and because more
         % wouldn't actually be used        
-        max_images = 1000;
+        max_images = 2000;
         
-        if(counter_colour(r) < max_images)
-        
-            mirrorImgs = allExamplesColourAllViews{mirrorIdx}(1:counter_colour(mirrorIdx),:,:);
-            mirrorLbls = landmarkLocationsAllViews{mirrorIdx}(1:counter_colour(mirrorIdx),:,:);
+        mirrorImgs = allExamplesColourAllViews{mirrorIdx}(1:counter_colour(mirrorIdx),:,:);
+        mirrorLbls = landmarkLocationsAllViews{mirrorIdx}(1:counter_colour(mirrorIdx),:,:);
 
-            for i=1:size(mirrorImgs,1)
+        for i=1:size(mirrorImgs,1)
 
-                flippedImg = fliplr(squeeze(mirrorImgs(i,:,:)));
+            flippedImg = fliplr(squeeze(mirrorImgs(i,:,:)));
 
-                flippedLbls = squeeze(mirrorLbls(i,:,:));
-                flippedLbls(:,1) = img_size(1) - flippedLbls(:,1) + 1;
+            flippedLbls = squeeze(mirrorLbls(i,:,:));
+            flippedLbls(:,1) = img_size(1) - flippedLbls(:,1) + 1;
 
-                tmp1 = flippedLbls(mirror_inds(:,1),:);
-                tmp2 = flippedLbls(mirror_inds(:,2),:);            
-                flippedLbls(mirror_inds(:,2),:) = tmp1;
-                flippedLbls(mirror_inds(:,1),:) = tmp2;   
+            tmp1 = flippedLbls(mirror_inds(:,1),:);
+            tmp2 = flippedLbls(mirror_inds(:,2),:);            
+            flippedLbls(mirror_inds(:,2),:) = tmp1;
+            flippedLbls(mirror_inds(:,1),:) = tmp2;   
 
-                mirrorImgs(i,:,:) = flippedImg;
-                mirrorLbls(i,:,:) = flippedLbls;
+            mirrorImgs(i,:,:) = flippedImg;
+            mirrorLbls(i,:,:) = flippedLbls;
 
-                % Ensure that after mirroring invalid (occluded) feature points
-                % are set to 0 in both x and y dims
-                mirrorLbls(i,flippedLbls(:,2)==0,1) = 0;
+            % Ensure that after mirroring invalid (occluded) feature points
+            % are set to 0 in both x and y dims
+            mirrorLbls(i,flippedLbls(:,2)==0,1) = 0;
 
-            end
+        end
 
-            all_images = cat(1, allExamplesColourAllViews{r}(1:counter_colour(r),:,:), mirrorImgs);        
-            landmark_locations = cat(1, landmarkLocationsAllViews{r}(1:counter_colour(r),:,:), mirrorLbls);           
-            actual_imgs_used = cat(1, actual_imgs_used_all_views{r}, actual_imgs_used_all_views{mirrorIdx});
-        else
-            all_images = allExamplesColourAllViews{r}(1:counter_colour(r),:,:);
-            landmark_locations = landmarkLocationsAllViews{r}(1:counter_colour(r),:,:);
-            actual_imgs_used = actual_imgs_used_all_views{r};                  
-        end        
-  
+        all_images = cat(1, allExamplesColourAllViews{r}(1:counter_colour(r),:,:), mirrorImgs);        
+        landmark_locations = cat(1, landmarkLocationsAllViews{r}(1:counter_colour(r),:,:), mirrorLbls);           
+        actual_imgs_used = cat(1, actual_imgs_used_all_views{r}(1:counter_colour(r)), actual_imgs_used_all_views{mirrorIdx}(1:counter_colour(mirrorIdx)));  
+          
         centres = centres_all(r,:);
 
         % identify the visibility of a point
