@@ -299,7 +299,7 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
     % if we don't have enough labelled original images add ones from diff
     % lighting conditions (that might not be perfectly labelled, but they
     % are better than fewer images)
-    images_aim = 2000;
+    images_aim = 8000;
     extra_factors = ones(size(counter_colour));
     
     for r=1:size(centres_all,1)
