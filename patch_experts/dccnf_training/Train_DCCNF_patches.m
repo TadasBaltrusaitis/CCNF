@@ -47,18 +47,7 @@ function [correlations, rmsErrors, patchExperts, visiIndex, centres, imgs_used, 
 
                 correlations(1,j) = correlations(1,mirror_idx);
                 rmsErrors(1, j) = rmsErrors(1,mirror_idx);
-                patchExperts{1, j} = patchExperts{1,mirror_idx};
-
-                num_hl = size(patchExperts{1,mirror_idx}.thetas, 1);
-                num_mod = size(patchExperts{1,mirror_idx}.thetas, 3);
-                for m=1:num_mod
-                    for hl=1:num_hl
-                        w = reshape(patchExperts{1,mirror_idx}.thetas(hl, 2:end, m),11,11);
-                        w = fliplr(w);
-                        w = reshape(w, 121,1);
-                        patchExperts{1, j}.thetas(hl, 2:end, m) = w;
-                    end
-                end
+                patchExperts{1, j} = Mirror_DCCNF_expert(patchExperts{1,mirror_idx});
 
                 fprintf('Feature %d done\n', j);
 
@@ -133,12 +122,17 @@ function [correlations, rmsErrors, patchExperts, visiIndex, centres, imgs_used, 
 
             fprintf('Rms error %.3f, correlation %.3f\n', rmsError, corr);
 
+%             us = [1, 21, 40];
+%             unnormed_samples = unnormed_samples(:,us);
+            
             % Assert that our normalisation and different fitting are equivalent
             normed_samples = samples_train(:,1:size(unnormed_samples,1)*region_length);
             [~, ~, responses_ccnf] = EvaluatePatchExpert(normed_samples, labels(1:size(unnormed_samples,1)*region_length), alpha, betas, thetas, similarities, sparsities, normalisation_options, region_length);
             [responses_ccnf_ncc] = DCCNF_ncc_response(unnormed_samples, patch_expert, normalisation_options, normalisation_options.normalisationRegion, region_length);
             assert(norm(responses_ccnf-responses_ccnf_ncc)< 10e-1);
 
+%             responses_ccnf_ncc_mirror = eval_mirror(unnormed_samples, patch_expert, normalisation_options, normalisation_options.normalisationRegion, region_length);
+            
             correlations(1,j) = corr;
             rmsErrors(1, j) = rmsError;
             patchExperts{1, j} = patch_expert(:);

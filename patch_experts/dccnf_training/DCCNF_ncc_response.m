@@ -56,14 +56,14 @@ function [ responses ] = DCCNF_ncc_response( patches, patch_experts, normalisati
                   
         % the feed-forward steps
         for l=2:numel(patch_experts.thetas)
-            responses_conv = cat(1, ones(1, size(responses_conv, 2)), responses_conv)' * patch_experts.thetas{l}';
+            responses_conv = patch_experts.thetas{l} * cat(1, ones(1, size(responses_conv, 2)), responses_conv);
             responses_conv = 1./(1 + exp(-responses_conv));
         end
         
         for p=1:final_layer_num
             % here we include the bias term as well, as it wasn't added
             % during the response calculation
-            b = b + (2 * patch_experts.alphas(p) * responses_conv(:,p));
+            b = b + (2 * patch_experts.alphas(p) * responses_conv(p,:))';
         end
         
         response = SigmaInv \ b;

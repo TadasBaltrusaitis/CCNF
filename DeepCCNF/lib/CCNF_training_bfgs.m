@@ -83,7 +83,7 @@ function [ alphas, betas, thetas, final_likelihood] = CCNF_training_bfgs(thresho
         rng(0);
         
         % By default try 300 times, but can override
-        num_reinit = 300;
+        num_reinit = 20;
         
         if(sum(strcmp(varargin,'num_reinit')))
             num_reinit = varargin{find(strcmp(varargin,'num_reinit')) + 1};
@@ -108,7 +108,7 @@ function [ alphas, betas, thetas, final_likelihood] = CCNF_training_bfgs(thresho
     bigNumber=1000;
     eta=ones(size(params))/500;
     eta(1:size(alphas,1)+size(betas,1))=eta(1:size(alphas,1)+size(betas,1))/bigNumber;
-    numEpochs=500; % smallish for now
+    numEpochs=300; % smallish for now
     percentageForBatch=0.1;
     percentageForDropout=.5;
     counterForCalcLiklihood=100;

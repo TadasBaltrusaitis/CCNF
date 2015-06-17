@@ -61,7 +61,7 @@ function [visi_index, centres, patches_m, imgs_used, norm_options] = AppendTrain
     
     patches_m = patches_m_init;
 
-    [correlations, rms_errors, patch_experts, visi_index, centres, imgs_used, norm_options] = Train_CCNF_patches(training_data_loc, view, scale, sigma, ratio_neg, num_samples, varargin{:});
+    [correlations, rms_errors, patch_experts, visi_index, centres, imgs_used, norm_options] = Train_DCCNF_patches(training_data_loc, view, scale, sigma, ratio_neg, num_samples, varargin{:});
     
     if(numel(patches_m_init.correlations) > 0)
         patches_m.correlations = cat(1, patches_m_init.correlations, correlations);
@@ -126,18 +126,7 @@ function [visiIndex, centres, patches_m] = AppendMirror(visiIndexInit, centresIn
         
         % To flip a patch expert it        
         for p=1:size(patchExpertMirror,2)
-            if(visiIndexT(p))
-                num_hl = size(patchExpertMirror{p}.thetas{1}, 1);
-                num_mod = size(patchExpertMirror{p}.thetas{1}, 3);
-                for m=1:num_mod
-                    for hl=1:num_hl
-                        w = reshape(patchExpertMirror{p}.thetas{1}(hl, 2:end, m),11,11);
-                        w = fliplr(w);
-                        w = reshape(w, 121,1);
-                        patchExpertMirror{p}.thetas{1}(hl, 2:end, m) = w;
-                    end
-                end
-            end
+            patchExpertMirror{p} = Mirror_DCCNF_expert(patchExpertMirror{p});
         end
         
         patches_m.patch_experts = cat(1, patches_m.patch_experts, patchExpertMirror);

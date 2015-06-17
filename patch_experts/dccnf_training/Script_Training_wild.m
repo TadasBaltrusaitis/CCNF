@@ -26,8 +26,8 @@ sparsity_types = [4,6];
 lambda_a = 100;
 lambda_b = 1000;
 lambda_th = 1;
-neural_layers = {[20,121],[5,20]};
-% neural_layers = {[1,121]};
+neural_layers = {[20,121],[30,20], [5,30]};
+% neural_layers = {[5,121]};
 
 for s=scales
 
