@@ -2,7 +2,7 @@
 function Prepare_data_wild_all()
 
     % replace with folder where you downloaded and extracted the 300-W challenge data
-    data_root = 'F:\Dropbox\Dropbox\AAM/test data/';
+    data_root = 'C:\Users\Tadas\Dropbox\AAM\test data/';
     
     PrepareTrainingWild(data_root, 0.25);
     PrepareTrainingWild(data_root, 0.35);
@@ -33,8 +33,10 @@ function PrepareTrainingWild( data_root, training_scale )
 
     % The centres of views we want to extract
     centres_all = [    0,   0,  0
-                      0, -20,  0
-                      0,  20,  0
+                      0, -30,  0
+                      0, -45,  0
+                      0,  30,  0  
+                      0,  45,  0     
                       ];
     
     num_centers = size(centres_all, 1);

@@ -2,10 +2,10 @@ function Prepare_data_Multi_PIE_all()
 
     % This bit collects all of the multi-pie labels into a single structure for
     % easy access
-    labels_root = 'F:\Dropbox\Dropbox\AAM\test data\MultiPI_AAM/';
+    labels_root = 'C:\Users\Tadas\Dropbox\AAM\test data\MultiPI_AAM/';
     
     % The location of the Multi-PIE data folder
-    multi_pie_root = 'F:/datasets/data/';
+    multi_pie_root = 'D:\MultiPIE\Image_Data/';
     
     multi_pie_labels = CollectMultiPieLabels(labels_root, multi_pie_root);
 
@@ -327,8 +327,7 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
     counter_colour = zeros(num_centers,1);
     
     % go through all images and add to corresponding container
-    for lbl=1:num_imgs                   
-
+    for lbl=1:num_imgs        
         labels = landmark_labels(:,:,lbl);
         occluded = labels(:,1) == 0;
         
@@ -337,7 +336,7 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
         labels = labels + 1;
         
         labels(occluded,:) = 0;
-                
+%         fprintf('%s\n', img_locations{lbl});
         imgCol = imread(img_locations{lbl});
 
         if(size(imgCol,3) == 3)
@@ -414,6 +413,7 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
                     end
                 end
                 img_loc = [img_dirs{lbl}, extra_locations{lbl}{lighting_id}];
+%                 fprintf('%s\n', img_loc);
                 imgCol = imread(img_loc);
 
                 if(size(imgCol,3) == 3)
