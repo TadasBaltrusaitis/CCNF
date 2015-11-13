@@ -50,8 +50,10 @@ samples_unnormed_filled = 1;
 %% parse the image names for reporting purposes
 imgs_used = img_names(samples_to_use);
 for i=1:numel(imgs_used)
-    [~,name,ext] = fileparts(imgs_used{i});
-    imgs_used{i} = [name, ext];
+    if(~isempty(imgs_used{i}))
+        [~,name,ext] = fileparts(imgs_used{i});
+        imgs_used{i} = [name, ext];
+    end
 end
 for i=samples_to_use
 

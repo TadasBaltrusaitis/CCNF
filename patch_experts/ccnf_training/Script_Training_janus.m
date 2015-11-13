@@ -5,18 +5,18 @@ root = '../data_preparation/prepared_data/';
 
 % which scales we're doing
 sigma = 1;
-num_samples = 5e5;
+num_samples = 3e6;
 
 scales = [0.25,0.35,0.5];
 frontalView = 1;
 
-profileViewInds = [2];
+profileViewInds = [2,3,4];
 
-version = 'wild';
+version = 'janus';
 ratio_neg = 5;
 norm = 1;
 
-data_loc = 'wild_';
+data_loc = 'janus_';
 rng(0);
 
 similarities = {[1,2]; [3, 4]};
@@ -26,8 +26,7 @@ sparsity_types = [4,6];
 lambda_a = 100;
 lambda_b = 1000;
 lambda_th = 1;
-neural_layers = {[10,121],[30,10], [5,30]};
-% neural_layers = {[5,121]};
+num_layers = 7;
 
 for s=scales
 
@@ -35,5 +34,5 @@ for s=scales
         s, sigma, version, 'ratio_neg', ratio_neg,...
         'num_samples', num_samples, 'data_loc', data_loc,...
         'normalisation_size', 19, 'similarity_types', similarities, 'sparsity', sparsity,...
-        'sparsity_types', sparsity_types, 'lambda_a', lambda_a, 'lambda_b', lambda_b, 'lambda_th', lambda_th, 'neural_layers', neural_layers);
+        'sparsity_types', sparsity_types, 'lambda_a', lambda_a, 'lambda_b', lambda_b, 'lambda_th', lambda_th, 'num_layers', num_layers);
 end

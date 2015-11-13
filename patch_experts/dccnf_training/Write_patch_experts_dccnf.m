@@ -1,5 +1,7 @@
-function Write_patch_experts_ccnf(location_txt, location_mlab, trainingScale, centers, visiIndex, patch_experts, normalisationOptions, w_sizes)
+function Write_patch_experts_dccnf(location_txt, location_mlab, trainingScale, centers, visiIndex, patch_experts, normalisationOptions, w_sizes)
       
+    save(location_mlab, 'patch_experts', 'trainingScale', 'centers', 'visiIndex', 'normalisationOptions');
+    
     patches_file = fopen(location_txt, 'w');        
     
     [n_views, n_landmarks, ~] = size(patch_experts.correlations);
@@ -20,17 +22,12 @@ function Write_patch_experts_ccnf(location_txt, location_mlab, trainingScale, ce
         writeMatrixBin(patches_file, centers(i,:)', 6);
     end
             
-%     fprintf(patches_file, '# visibility indices per view\r\n');
-    
     for i=1:n_views
         % this indicates that we're writing a 3x1 double matrix
         writeMatrixBin(patches_file, visiIndex(i,:)', 4);
     end
     
-%     fprintf(patches_file, '# Sigma component matrices being used in these patches\r\n');    
-
 %     fprintf(patches_file, '# Number of windows sizes\r\n');
-%     fprintf(patches_file, '%d\r\n', numel(w_sizes));
     fwrite(patches_file, numel(w_sizes), 'int');
     
     for w = 1:numel(w_sizes)
@@ -72,8 +69,8 @@ function Write_patch_experts_ccnf(location_txt, location_mlab, trainingScale, ce
     for i=1:n_views
         for j=1:n_landmarks
 
-            % Write out that we're writing a ccnf patch expert of 11x11 support region
-            fwrite(patches_file, 5, 'int');
+            % Write out that we're writing a dccnf patch expert of 11x11 support region
+            fwrite(patches_file, 6, 'int');
             fwrite(patches_file, 11, 'int');
             fwrite(patches_file, 11, 'int');
             
@@ -85,48 +82,66 @@ function Write_patch_experts_ccnf(location_txt, location_mlab, trainingScale, ce
             else
                 num_neurons = size(patch_experts.patch_experts{i,j}.thetas, 1);
 
-                % CCNF patch(5), width, height, num_neurons, Patch(2), neuron_type,
+                % DCCNF patch(6), width, height, num_neurons, Patch(2), neuron_type,
                 % normalisation, bias, alpha, rows, cols, type            
-                num_modalities = size(patch_experts.patch_experts{i,j}.thetas, 3);
+                num_modalities = size(patch_experts.patch_experts{i,j}.thetas{1}, 3);
 
-                fwrite(patches_file, num_neurons, 'int');
+                % First write out the number of layers
+                num_layers = numel(patch_experts.patch_experts{i,j}.thetas);
+                fwrite(patches_file, num_layers , 'int');
+                
+                for layer=1:num_layers
+                
+                    if(layer == 1)
+                        % Number of neurons in this layer
+                        fwrite(patches_file, num_neurons, 'int');
+                        
+                        for n=1:num_neurons
+                            for m=1:num_modalities
 
-                for n=1:num_neurons
-                    for m=1:num_modalities
+                                if(strcmp(patch_experts.types{m}, 'reg'))
+                                   type = 0; 
+                                elseif(strcmp(patch_experts.types{m}, 'grad'))
+                                   type = 1; 
+                                else
+                                   fprintf('Not supported patch type\n');
+                                   type = 0;
+                                end
 
-                        if(strcmp(patch_experts.types{m}, 'reg'))
-                           type = 0; 
-                        elseif(strcmp(patch_experts.types{m}, 'grad'))
-                           type = 1; 
-                        else
-                           fprintf('Not supported patch type\n');
-                           type = 0;
+                                % normalise the w
+                                w = patch_experts.patch_experts{i,j}.thetas{1}(n, 2:end, m);
+                                norm_w = norm(w);
+                                w = w/norm(w);
+                                bias = patch_experts.patch_experts{i,j}.thetas{1}(n, 1, m);
+
+                                % also add patch confidence based on correlation scores
+                                fwrite(patches_file, 2, 'int');
+                                fwrite(patches_file, type, 'int');
+                                fwrite(patches_file, norm_w, 'float64');
+                                fwrite(patches_file, bias, 'float64');
+                                
+
+                                % the actual weight matrix
+                                writeMatrixBin(patches_file, reshape(w, 11, 11), 5);
+                            end
                         end
 
-                        % normalise the w
-                        w = patch_experts.patch_experts{i,j}.thetas(n, 2:end, m);
-                        norm_w = norm(w);
-                        w = w/norm(w);
-                        bias = patch_experts.patch_experts{i,j}.thetas(n, 1, m);
-                        alpha = patch_experts.patch_experts{i,j}.alphas((m-1)*num_neurons+n);
-                        
-                        % also add patch confidence based on correlation scores
-                        fwrite(patches_file, 2, 'int');
-                        fwrite(patches_file, type, 'int');
-                        fwrite(patches_file, norm_w, 'float64');
-                        fwrite(patches_file, bias, 'float64');
-                        fwrite(patches_file, alpha, 'float64');
-                        
-                        % the actual weight matrix
-                        writeMatrixBin(patches_file, reshape(w, 11, 11), 5);
-                    end
+                    else
+                        writeMatrixBin(patches_file, patch_experts.patch_experts{i,j}.thetas{layer}, 5);
+                    end                  
+                                        
                 end
-
+                
+                % Write out the alphas                
+                for a=1:numel(patch_experts.patch_experts{i,j}.alphas)                    
+                    alpha = patch_experts.patch_experts{i,j}.alphas(a);                                
+                    fwrite(patches_file, alpha, 'float64');
+                end
+                
                 % Write out the betas
                 for b=1:numel(patch_experts.patch_experts{i,j}.betas)
                     fwrite(patches_file, patch_experts.patch_experts{i,j}.betas(b), 'float64');
-                end
-                
+                end                  
                 % finally write out the confidence
                 fwrite(patches_file, patch_experts.correlations(i,j), 'float64');
                 
@@ -135,5 +150,3 @@ function Write_patch_experts_ccnf(location_txt, location_mlab, trainingScale, ce
     end
 
     fclose(patches_file);
-    save(location_mlab, 'patch_experts', 'trainingScale', 'centers', 'visiIndex', 'normalisationOptions');
-    

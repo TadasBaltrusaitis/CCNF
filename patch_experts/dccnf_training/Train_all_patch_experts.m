@@ -46,10 +46,10 @@ for i=1:numel(profile_views)
 end
 
 % output the training
-locationTxtCol = sprintf('trained/ccnf_patches_%s_%s.txt', num2str(scaling), version);
-locationMlabCol = sprintf('trained/ccnf_patches_%s_%s.mat', num2str(scaling), version);
+locationTxtCol = sprintf('trained/dccnf_patches_%s_%s.txt', num2str(scaling), version);
+locationMlabCol = sprintf('trained/dccnf_patches_%s_%s.mat', num2str(scaling), version);
 
-Write_patch_experts_ccnf(locationTxtCol, locationMlabCol, scaling, centres, visiIndex, patch_experts, norm_options, [7,9,11,15]);
+Write_patch_experts_dccnf(locationTxtCol, locationMlabCol, scaling, centres, visiIndex, patch_experts, norm_options, [7,9,11,15]);
 
 % save the images used
 location_imgs_used = sprintf('trained/imgs_used_%s.mat', version);

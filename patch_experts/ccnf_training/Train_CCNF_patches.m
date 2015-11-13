@@ -130,10 +130,10 @@ function [correlations, rmsErrors, patchExperts, visiIndex, centres, imgs_used, 
             fprintf('Rms error %.3f, correlation %.3f\n', rmsError, corr);
 
             % Assert that our normalisation and different fitting are equivalent
-            normed_samples = samples_train(:,1:size(unnormed_samples,1)*region_length);
-            [~, ~, responses_ccnf] = EvaluatePatchExpert(normed_samples, labels_train(1:size(unnormed_samples,1)*region_length), alpha, betas, thetas, similarities, sparsities, normalisation_options, region_length);
-            [responses_ccnf_ncc] = CCNF_ncc_response(unnormed_samples, patch_expert, normalisation_options, normalisation_options.normalisationRegion, region_length);
-            assert(norm(responses_ccnf-responses_ccnf_ncc)< 10e-1);
+%             normed_samples = samples_train(:,1:size(unnormed_samples,1)*region_length);
+%             [~, ~, responses_ccnf] = EvaluatePatchExpert(normed_samples, labels_train(1:size(unnormed_samples,1)*region_length), alpha, betas, thetas, similarities, sparsities, normalisation_options, region_length);
+%             [responses_ccnf_ncc] = CCNF_ncc_response(unnormed_samples, patch_expert, normalisation_options, normalisation_options.normalisationRegion, region_length);
+%             assert(norm(responses_ccnf-responses_ccnf_ncc)< 10e-1);
 
             correlations(1,j) = corr;
             rmsErrors(1, j) = rmsError;

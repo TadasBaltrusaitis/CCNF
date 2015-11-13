@@ -98,11 +98,6 @@ function [correlations, rmsErrors, patchExperts, visiIndex, centres, imgs_used, 
                         
             %% The actual regressor training
             [alpha, betas, thetas, similarities, sparsities] = Create_DCCNF_Regressor(samples_train, labels_train, samples_test, labels_test, region_length, similarity_types, normalisation_options.sparsity_types, normalisation_options);
-
-            % TODO rm
-            save('test.mat', 'alpha', 'betas', 'thetas');
-            %%
-            load('test.mat');
             
             % The learned patch expert
             patch_expert.alphas = alpha;
@@ -126,10 +121,10 @@ function [correlations, rmsErrors, patchExperts, visiIndex, centres, imgs_used, 
 %             unnormed_samples = unnormed_samples(:,us);
             
             % Assert that our normalisation and different fitting are equivalent
-            normed_samples = samples_train(:,1:size(unnormed_samples,1)*region_length);
-            [~, ~, responses_ccnf] = EvaluatePatchExpert(normed_samples, labels(1:size(unnormed_samples,1)*region_length), alpha, betas, thetas, similarities, sparsities, normalisation_options, region_length);
-            [responses_ccnf_ncc] = DCCNF_ncc_response(unnormed_samples, patch_expert, normalisation_options, normalisation_options.normalisationRegion, region_length);
-            assert(norm(responses_ccnf-responses_ccnf_ncc)< 10e-1);
+%             normed_samples = samples_train(:,1:size(unnormed_samples,1)*region_length);
+%             [~, ~, responses_ccnf] = EvaluatePatchExpert(normed_samples, labels(1:size(unnormed_samples,1)*region_length), alpha, betas, thetas, similarities, sparsities, normalisation_options, region_length);
+%             [responses_ccnf_ncc] = DCCNF_ncc_response(unnormed_samples, patch_expert, normalisation_options, normalisation_options.normalisationRegion, region_length);
+%             assert(norm(responses_ccnf-responses_ccnf_ncc)< 10e-1);
 
 %             responses_ccnf_ncc_mirror = eval_mirror(unnormed_samples, patch_expert, normalisation_options, normalisation_options.normalisationRegion, region_length);
             

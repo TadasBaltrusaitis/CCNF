@@ -56,7 +56,7 @@ function [ responses ] = DCCNF_ncc_response( patches, patch_experts, normalisati
                   
         % the feed-forward steps
         for l=2:numel(patch_experts.thetas)
-            responses_conv = patch_experts.thetas{l} * cat(1, ones(1, size(responses_conv, 2)), responses_conv);
+            responses_conv = patch_experts.thetas{l} * cat(1, responses_conv, ones(1, size(responses_conv, 2)));
             responses_conv = 1./(1 + exp(-responses_conv));
         end
         

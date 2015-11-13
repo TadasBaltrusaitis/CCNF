@@ -2,7 +2,7 @@ function Prepare_data_Multi_PIE_all()
 
     % This bit collects all of the multi-pie labels into a single structure for
     % easy access
-    labels_root = 'C:\Users\Tadas\Dropbox\AAM\test data\MultiPI_AAM/';
+    labels_root = 'C:\Users\tbaltrus\Dropbox\AAM\test data\MultiPI_AAM/';
     
     % The location of the Multi-PIE data folder
     multi_pie_root = 'D:\MultiPIE\Image_Data/';
@@ -12,15 +12,17 @@ function Prepare_data_Multi_PIE_all()
     %% 
     
     % Make sure same images are used across scales
-    rng(0);    
-    ExtractTrainingMultiPIE(0.25, multi_pie_labels);
-    
-    rng(0);    
-    ExtractTrainingMultiPIE(0.35, multi_pie_labels);
-    
-    rng(0);    
-    ExtractTrainingMultiPIE(0.5, multi_pie_labels);
-        
+%     rng(0);    
+%     ExtractTrainingMultiPIE(0.25, multi_pie_labels);
+%     
+%     rng(0);    
+%     ExtractTrainingMultiPIE(0.35, multi_pie_labels);
+%     
+%     rng(0);    
+%     ExtractTrainingMultiPIE(0.5, multi_pie_labels);
+       
+     rng(0);    
+     ExtractTrainingMultiPIE(1.0, multi_pie_labels);
 end
 % Now extract the relevant information
 

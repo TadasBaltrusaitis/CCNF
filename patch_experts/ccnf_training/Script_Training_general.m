@@ -7,7 +7,7 @@ root = '../data_preparation/prepared_data/';
 sigma = 1;
 num_samples = 1e6;
 
-scales = [0.25,0.35,0.5];
+scales = [1.0];
 frontalView = 1;
 
 profileViewInds = [2,3,4];
