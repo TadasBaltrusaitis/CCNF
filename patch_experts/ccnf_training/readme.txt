@@ -7,4 +7,7 @@ Script_Training_wild.m (using in-the-wild data)
 Script_Training_multi_pie (using multi-pie data)
 Script_Training_general (using combined data)
 
+To prepare the inner face general patch expert run:
+extract_inner.m
+
 The trained patch experts are included in the './trained/' folder, the experts you train might differ slightly based on the version of Matlab used.

@@ -1,5 +1,7 @@
 function Write_patch_experts_ccnf(location_txt, location_mlab, trainingScale, centers, visiIndex, patch_experts, normalisationOptions, w_sizes)
       
+    save(location_mlab, 'patch_experts', 'trainingScale', 'centers', 'visiIndex', 'normalisationOptions');
+    
     patches_file = fopen(location_txt, 'w');        
     
     [n_views, n_landmarks, ~] = size(patch_experts.correlations);
@@ -135,5 +137,3 @@ function Write_patch_experts_ccnf(location_txt, location_mlab, trainingScale, ce
     end
 
     fclose(patches_file);
-    save(location_mlab, 'patch_experts', 'trainingScale', 'centers', 'visiIndex', 'normalisationOptions');
-    

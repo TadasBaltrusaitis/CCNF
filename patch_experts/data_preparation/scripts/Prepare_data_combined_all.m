@@ -5,7 +5,7 @@ function Prepare_data_combined_all()
     Collect_combined_data(root, '0.25');
     Collect_combined_data(root, '0.35');
     Collect_combined_data(root, '0.5');
-        
+    Collect_combined_data(root, '1');
 end
 
 function Collect_combined_data(root, scale)

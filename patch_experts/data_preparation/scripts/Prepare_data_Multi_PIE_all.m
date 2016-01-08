@@ -2,10 +2,10 @@ function Prepare_data_Multi_PIE_all()
 
     % This bit collects all of the multi-pie labels into a single structure for
     % easy access
-    labels_root = 'F:\Dropbox\Dropbox\AAM\test data\MultiPI_AAM/';
+    labels_root = 'C:\Users\tbaltrus\Dropbox\AAM\test data\MultiPI_AAM/';
     
     % The location of the Multi-PIE data folder
-    multi_pie_root = 'F:/datasets/data/';
+    multi_pie_root = 'D:\MultiPIE/Image_Data/';
     
     multi_pie_labels = CollectMultiPieLabels(labels_root, multi_pie_root);
 
@@ -21,6 +21,9 @@ function Prepare_data_Multi_PIE_all()
     rng(0);    
     ExtractTrainingMultiPIE(0.5, multi_pie_labels);
         
+    rng(0);    
+    ExtractTrainingMultiPIE(1.0, multi_pie_labels);    
+    
 end
 % Now extract the relevant information
 
@@ -326,6 +329,10 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
     
     counter_colour = zeros(num_centers,1);
     
+    % The shape fitting is performed in the reference frame of the
+    % patch training scale
+    refGlobal = [training_scale, 0, 0, 0, 0, 0]';
+    
     % go through all images and add to corresponding container
     for lbl=1:num_imgs                   
 
@@ -343,51 +350,35 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
         if(size(imgCol,3) == 3)
             imgCol = rgb2gray(imgCol);
         end
-                               
-        % resize the image to desired scale
-        scalingFactor = training_scale / scales(lbl);
-
-        resizeColImage = imresize(imgCol, scalingFactor, 'bilinear');
-
-        % as we are performing 1 based indexing (where 1 is pixel center) need to shift it
-        labels = (labels - 0.5) * scalingFactor + 0.5;
-
-        % we want to crop out the image now
-        meanX = round(mean(labels(~occluded,1)));
-        meanY = round(mean(labels(~occluded,2)));
-        startX = round(meanX-img_size(1)/2);            
-        startY = round(meanY-img_size(2)/2);            
-
-        if(startX < 1)
-            startX = 1;
-        end
-        if(startY < 1) 
-            startY = 1;
-        end
-
-        endX = startX + img_size(1) - 1;
-        endY = startY + img_size(2) - 1;
-
-        if(endX > size(resizeColImage,2))
-            resizeColImage = cat(2, resizeColImage, zeros(size(resizeColImage,1), endX - size(resizeColImage,2)));
-        end
-
-        if(endY > size(resizeColImage,1))
-            resizeColImage = cat(1, resizeColImage, zeros(endY - size(resizeColImage,1), size(resizeColImage,2)));
-        end
-        resizeColImage = resizeColImage(startY:endY,startX:endX);        
-
-        labels(:,1) = labels(:,1) - startX + 1;
-        labels(:,2) = labels(:,2) - startY + 1;
+          
+        % the reference shape
+        [ ~, ~, ~,~, local_params] = fit_PDM_ortho_proj_to_2D( Msm, E, Vsm, labels);
+        refShape = GetShapeOrtho(M, Vsm, local_params, refGlobal);
         
-        labels(occluded,1) = 0;
-        labels(occluded,2) = 0;
+        % Create transform using a slightly modified version of Kabsch that
+        % takes scaling into account as well, in essence we get a
+        % similarity transform from current estimate to reference shape
+        [A_img2ref, T_img2ref, ~, ~] = AlignShapesWithScale(labels(~occluded,:), refShape(~occluded,1:2));
+
+        T_img2ref = T_img2ref + [img_size(1)/2, img_size(2)/2];
+        
+        % Create a transform, from shape in image to reference shape
+        T = affine2d([A_img2ref';T_img2ref]);
+                
+        % transform the current shape to the reference one
+        shape2D_in_ref = bsxfun(@plus, (A_img2ref * labels')', T_img2ref);        
+        
+        % warp the image
+        resizeColImage = imwarp(imgCol, T, 'linear', 'OutputView', imref2d(img_size));             
+        
+        shape2D_in_ref(occluded,1) = 0;
+        shape2D_in_ref(occluded,2) = 0;
         
         counter_colour(views(lbl)) = counter_colour(views(lbl)) + 1;
 
         allExamplesColourAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = resizeColImage;
 
-        landmarkLocationsAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = labels;
+        landmarkLocationsAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = shape2D_in_ref;
         actual_imgs_used_all_views{views(lbl)}{counter_colour(views(lbl))} = img_locations{lbl};
         
         % Here to add extra images if missing and not filled yet
@@ -421,24 +412,13 @@ function ExtractTrainingMultiPIE( training_scale, multi_pie_labels)
                 end
 
                 % resize the image to desired scale
-                scalingFactor = training_scale / scales(lbl);
-
-                resizeColImage = imresize(imgCol, scalingFactor, 'bilinear');
-                
-                if(endX > size(resizeColImage,2))
-                    resizeColImage = cat(2, resizeColImage, zeros(size(resizeColImage,1), endX - size(resizeColImage,2)));
-                end
-
-                if(endY > size(resizeColImage,1))
-                    resizeColImage = cat(1, resizeColImage, zeros(endY - size(resizeColImage,1), size(resizeColImage,2)));
-                end
-                resizeColImage = resizeColImage(startY:endY,startX:endX);        
+                resizeColImage = imwarp(imgCol, T, 'linear', 'OutputView', imref2d(img_size));   
 
                 counter_colour(views(lbl)) = counter_colour(views(lbl)) + 1;
 
                 allExamplesColourAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = resizeColImage;
 
-                landmarkLocationsAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = labels;
+                landmarkLocationsAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = shape2D_in_ref;
                 actual_imgs_used_all_views{views(lbl)}{counter_colour(views(lbl))} = img_loc;
                 factor = factor - 1;
             end

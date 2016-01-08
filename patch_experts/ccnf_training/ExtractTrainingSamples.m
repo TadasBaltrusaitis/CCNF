@@ -30,18 +30,12 @@ samples_unnormed = zeros(int32(num_samples/300), evaluation_size(1)^2);
 
 img_size = [size(examples,2), size(examples,3)];
 
-% making sure randomisation starts at the same point
-rng(0);
+% Extract only images of differing shaped faces to extract more diverse
+% training samples
+to_keep = FindDistantLandmarks(landmarkLoc, landmark, round(samples_per_img*size(examples,1)));
 
-% Pick the images to use
-samples_to_use = randperm(size(examples,1));
-
-% either use all of the images or part of them
-if(samples_per_img*size(examples,1) > size(examples,1))
-    samples_to_use = 1:size(examples,1);
-else
-    samples_to_use = samples_to_use(1:round(samples_per_img*size(examples,1)));
-end
+inds_all = 1:size(examples,1);
+samples_to_use = inds_all(to_keep);
 
 % Keep track of how many samples have been computed already
 samples_filled = 1;
@@ -124,7 +118,7 @@ if(normalisation_options.useNormalisedCrossCorr == 1)
     patch_normed = patch_normed ./ repmat(scaling, 1, patch_expert_support_size(1)*patch_expert_support_size(2));
 
     samples = patch_normed;
-
+    clear 'patch_normed';
 end
 
 % Only keep the filled samples

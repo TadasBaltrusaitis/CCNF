@@ -27,7 +27,7 @@ lambda_a = 100;
 lambda_b = 1000;
 lambda_th = 1;
 num_layers = 7;
-
+    
 for s=scales
 
     Train_all_patch_experts(root, frontalView, profileViewInds,...

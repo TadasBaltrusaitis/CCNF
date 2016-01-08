@@ -5,9 +5,9 @@ root = '../data_preparation/prepared_data/';
 
 % which scales we're doing
 sigma = 1;
-num_samples = 5e5;
+num_samples = 2e6;
 
-scales = [0.25,0.35,0.5];
+scales = [0.25,0.35,0.5,1.0];
 frontalView = 1;
 
 profileViewInds = [2];
@@ -23,8 +23,8 @@ similarities = {[1,2]; [3, 4]};
 sparsity = 1;
 sparsity_types = [4,6];
 
-lambda_a = 100;
-lambda_b = 1000;
+lambda_a = 200;
+lambda_b = 7500;
 lambda_th = 1;
 num_layers = 7;
 

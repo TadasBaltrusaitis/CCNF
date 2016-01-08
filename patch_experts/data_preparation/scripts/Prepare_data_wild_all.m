@@ -2,11 +2,12 @@
 function Prepare_data_wild_all()
 
     % replace with folder where you downloaded and extracted the 300-W challenge data
-    data_root = 'F:\Dropbox\Dropbox\AAM/test data/';
+    data_root = 'C:\Users\tbaltrus\Dropbox\AAM/test data/';
     
     PrepareTrainingWild(data_root, 0.25);
     PrepareTrainingWild(data_root, 0.35);
     PrepareTrainingWild(data_root, 0.5);
+    PrepareTrainingWild(data_root, 1.0);
 end
 
 function PrepareTrainingWild( data_root, training_scale )
@@ -102,6 +103,10 @@ function PrepareTrainingWild( data_root, training_scale )
     
     counter_colour = zeros(num_centers,1);
     
+    % The shape fitting is performed in the reference frame of the
+    % patch training scale
+    refGlobal = [training_scale, 0, 0, 0, 0, 0]';
+        
     % go through all images and add to corresponding container
     for lbl=1:num_imgs                   
 
@@ -114,47 +119,31 @@ function PrepareTrainingWild( data_root, training_scale )
             imgCol = rgb2gray(imgCol);
         end        
         
-        % resize the image to desired scale
-        scalingFactor = training_scale / scales(lbl);
-
-        resizeColImage = imresize(imgCol, scalingFactor, 'bilinear');
-
-        % as we are performing 1 based indexing (where 1 is pixel center) need to shift it
-        labels = (labels - 0.5) * scalingFactor + 0.5;
-
-        % we want to crop out the image now
-        meanX = round(mean(labels(:,1)));
-        meanY = round(mean(labels(:,2)));
-        startX = round(meanX-imgSize(1)/2);            
-        startY = round(meanY-imgSize(2)/2);            
-
-        if(startX < 1)
-            startX = 1;
-        end
-        if(startY < 1) 
-            startY = 1;
-        end
-
-        endX = startX + imgSize(1) - 1;
-        endY = startY + imgSize(2) - 1;
-
-        if(endX > size(resizeColImage,2))
-            resizeColImage = cat(2, resizeColImage, zeros(size(resizeColImage,1), endX - size(resizeColImage,2)));
-        end
-
-        if(endY > size(resizeColImage,1))
-            resizeColImage = cat(1, resizeColImage, zeros(endY - size(resizeColImage,1), size(resizeColImage,2)));
-        end
-        resizeColImage = resizeColImage(startY:endY,startX:endX);        
-
-        labels(:,1) = labels(:,1) - startX + 1;
-        labels(:,2) = labels(:,2) - startY + 1;
+        % the reference shape
+        [ ~, ~, ~,~, local_params] = fit_PDM_ortho_proj_to_2D( Msm, E, Vsm, labels);
+        refShape = GetShapeOrtho(M, Vsm, local_params, refGlobal);
         
+        % Create transform using a slightly modified version of Kabsch that
+        % takes scaling into account as well, in essence we get a
+        % similarity transform from current estimate to reference shape
+        [A_img2ref, T_img2ref, ~, ~] = AlignShapesWithScale(labels, refShape(:,1:2));
+
+        T_img2ref = T_img2ref + [imgSize(1)/2, imgSize(2)/2];
+        
+        % Create a transform, from shape in image to reference shape
+        T = affine2d([A_img2ref';T_img2ref]);
+                
+        % transform the current shape to the reference one
+        shape2D_in_ref = bsxfun(@plus, (A_img2ref * labels')', T_img2ref);        
+        
+        % warp the image
+        [warped_img] = imwarp(imgCol, T, 'linear', 'OutputView', imref2d(imgSize));
+                
         counter_colour(views(lbl)) = counter_colour(views(lbl)) + 1;
 
-        allExamplesColourAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = resizeColImage;
+        allExamplesColourAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = warped_img;
 
-        landmarkLocationsAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = labels;
+        landmarkLocationsAllViews{views(lbl)}(counter_colour(views(lbl)),:,:) = shape2D_in_ref;
         actual_imgs_used_all_views{views(lbl)}{counter_colour(views(lbl))} = img_locations{lbl};
         if(mod(lbl, 100) == 0)
             fprintf('%d/%d done\n', lbl, num_imgs);

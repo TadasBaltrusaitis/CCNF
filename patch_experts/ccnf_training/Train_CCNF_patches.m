@@ -67,14 +67,15 @@ function [correlations, rmsErrors, patchExperts, visiIndex, centres, imgs_used, 
             end
         end
         
+        imgs_used = {};
         if(visiIndex(j)) 
             
             tic;
             % instead of loading the patches compute them here:
             num_samples = normalisation_options.numSamples;
 
-            [samples, labels, unnormed_samples, imgs_used] = ExtractTrainingSamples(examples, landmark_loc, actual_imgs_used, sigma, num_samples, j, normalisation_options);
-
+            [samples, labels, unnormed_samples, imgs_used_n] = ExtractTrainingSamples(examples, landmark_loc, actual_imgs_used, sigma, num_samples, j, normalisation_options);
+            imgs_used = union(imgs_used, imgs_used_n);
             % add the bias term
             samples = [ones(1,size(samples,1)); samples'];                  
             
@@ -97,8 +98,6 @@ function [correlations, rmsErrors, patchExperts, visiIndex, centres, imgs_used, 
 
             samples_test = samples(:,test_start:test_end);                                                
             labels_test = labels(test_start:test_end);
-
-            clear samples
             
             % Set up the patch expert
             similarity_types = normalisation_options.similarity_types;    
@@ -119,7 +118,7 @@ function [correlations, rmsErrors, patchExperts, visiIndex, centres, imgs_used, 
             % if we have a SigmaInv, we don't need betas anymore (or
             % similarity and sparsity functions for that matter), compute
             % in a single sample for efficiency
-            [ ~, ~, Precalc_Bs_flat, ~ ] = CalculateSimilarities( 1, samples_train(:,1:region_length), similarities, sparsities, labels_train(1:region_length), true);
+            [ ~, ~, Precalc_Bs_flat, ~ ] = CalculateSimilarities( 1, zeros(size(samples,1),region_length), similarities, sparsities, labels_train(1:region_length), true);
             Precalc_B_flat = Precalc_Bs_flat{1};
             SigmaInv = CalcSigmaCCNFflat(patch_expert.alphas, patch_expert.betas, region_length, Precalc_B_flat, eye(region_length), zeros(region_length));
             patch_expert.SigmaInv = SigmaInv;
@@ -140,6 +139,12 @@ function [correlations, rmsErrors, patchExperts, visiIndex, centres, imgs_used, 
             patchExperts{1, j} = patch_expert(:);
 
             fprintf('Landmark %d done\n', j);
+            clear samples
+            clear samples_test
+            clear samples_train
+            clear labels
+            clear unnormed_samples
+            clear imgs_used_n
             toc;
         end
     end
